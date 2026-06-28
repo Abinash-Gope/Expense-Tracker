@@ -1,12 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <title>Document</title>
 </head>
 <body>
+    <main class="screen-container">
+
+        <!-- Sign-in/Sign-up -->
+
+        <div id="login-wrapper" >
+            
+            <section class="login-info-side">
+                <h1>Track Every Penny.</h1>
+                <p>Take control of your financial future with our clean, minimalist expense tracker dashboard.</p>
+            </section>
+            
+            <section class="login-form-side">
+    
+                <div id="login-box">
+                    <h2>Welcome Back</h2>
+                    <p class="form-subtitle">Login to FinTrack Pro</p>
+                    
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="username">Username or Email</label>
+                            <input type="text" id="username" placeholder="Enter your username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="password-field-container">
+                                <input type="password" id="password" placeholder="Enter your password" required>
+                                <button type="button" class="toggle-password-link">Show</button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="login-btn">Sign In</button>
+                        <p class="toggle-text">Don't have an account? <a href="#" id="to-register-link">Register here</a></p>
+                        
+                        <div id="error-message" class="error-text"></div>
+                    </form>
+                </div>
+
+                <div id="register-box" class="hidden">
+                    <h2>Create Account</h2>
+                    <p class="form-subtitle">Join FinTrack Pro</p>
+                    
+                    <form id="register-form">
+                        <div class="form-group">
+                            <label for="register-username">Choose a Username</label>
+                            <input type="text" id="register-username" placeholder="Enter your username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password-register">Password</label>
+                            <div class="password-field-container">
+                                <input type="password" id="password-register" placeholder="Enter your password" required>
+                                <button type="button" class="toggle-password-link">Show</button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="login-btn btn-success">Register</button>
+                        <p class="toggle-text">Already have an account? <a href="#" id="to-login-link">Login here</a></p>
+                        
+                        <div id="register-error" class="error-text"></div>
+                    </form>
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
     
 
     <script src="script.js"></script>

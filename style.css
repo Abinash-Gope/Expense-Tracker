@@ -1,33 +1,273 @@
-*, *::before, *::after {
+/* ==========================================================================
+   --- LIGHT MODE (DEFAULT) ---
+   ========================================================================== */
+:root {
+  --bg-color: #f8fafc;       /* Light Slate body background */
+  --card-bg: #ffffff;        /* Crisp white for forms and summary cards */
+  --text-main: #0f172a;      /* Deep Slate for high-readability text */
+  --text-muted: #64748b;     /* Slate Gray for secondary captions */
+  
+  /* Brand Theme Colors (Your signature Indigo identity) */
+  --primary: #4f46e5;        
+  --primary-hover: #4338ca;  
+  
+  /* Transaction Utilities */
+  --success: #10b981;        /* Emerald green for income items */
+  --success-bg: #e6f4ea;     
+  --danger: #ef4444;         /* Coral red for expense items */
+  --danger-bg: #fce8e6;      
+  
+  /* Structure & Layout Tokens */
+  --border-color: #e2e8f0;   /* Clean light dividers */
+  --sidebar-bg: #0f172a;     /* Deep contrast slate for the navigation panel */
+  --sidebar-text: #94a3b8;   /* Balanced link color against dark background */
+  --bg-item: #f1f5f9;        /* Soft gray for background items like ledger cards */
+  
+  --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+  --radius: 12px;
+}
+
+/* ==========================================================================
+   --- DARK MODE OVERRIDES ---
+   ========================================================================== */
+[data-theme="dark"] {
+  --bg-color: #0f172a;       /* Deep Midnight Slate */
+  --card-bg: #1e293b;        /* Lighter slate for panel boxes */
+  --text-main: #f8fafc;      /* Clean off-white for low-strain reading */
+  --text-muted: #94a3b8;     /* Soft slate grey for subtexts */
+  
+  /* Glow treatments for the core brand colors in dark view */
+  --primary: #6366f1;        
+  --primary-hover: #4f46e5;  
+  
+  /* Balanced utility variants for dark mode illumination */
+  --success: #34d399;        
+  --success-bg: rgba(52, 211, 153, 0.1); 
+  --danger: #f87171;         
+  --danger-bg: rgba(248, 113, 113, 0.1); 
+  
+  /* Structure & Layout Adjustments */
+  --border-color: #334155;   /* Subtle divider tint to match slate */
+  --sidebar-bg: #020617;     /* Solid pitch slate to distinguish layout zones */
+  --sidebar-text: #64748b;   
+  --bg-item: #0f172a;        /* Alternating card tint to pull entries forward */
+  
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html {
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-}
-
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-size: 16px;
   line-height: 1.5;
-  color: #333333;
-  background-color: #ffffff;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.hidden {
+  display: none !important;
+}
+
+
+/*LAYOUT */
+.screen-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
-  text-rendering: optimizeSpeed;
+  padding: 24px;
 }
 
-img, picture, svg, video {
-  max-width: 100%;
+#login-wrapper {
+  display: flex;
+  width: 100%;
+  max-width: 960px;
+  min-height: 560px;
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+/*LEFT SIDE*/ 
+.login-info-side {
+  flex: 1;
+  background-color: var(--primary);
+  color: #ffffff;
+  padding: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-info-side h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.login-info-side p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+/*RIGHT SIDE*/ 
+.login-form-side {
+  flex: 1;
+  padding: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-form-side h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.login-form-side .form-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
   display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
-h1, h2, h3, h4, button, input, label {
-  line-height: 1.1;
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-main);
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input, button, textarea, select {
-  font: inherit;
+.form-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
 
+.error-text {
+  color: var(--danger);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+  min-height: 20px;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-top: 0.5rem;
+}
+
+.login-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.login-btn:active {
+  transform: scale(0.99);
+}
+
+
+/* REGISTER */
+.login-form-side .form-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.toggle-text {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  
+}
+
+.toggle-text a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.toggle-text a:hover {
+  text-decoration: underline; 
+  color: var(--primary-hover);
+}
+
+.error-text {
+  color: var(--danger);
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  min-height: 20px;
+}
+
+/* PASSWORD-SEEN */
+
+.password-field-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field-container input {
+  padding-right: 60px !important;
+}
+
+.toggle-password-link {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.toggle-password-link:hover {
+  color: var(--primary);
+}
