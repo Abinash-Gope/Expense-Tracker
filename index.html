@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,32 +7,26 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <title>Document</title>
+    <title>FinTrack Pro</title>
 </head>
 <body>
+    <!-- Sign-in/Sign-up Section -->
     <main class="screen-container">
-
-        <!-- Sign-in/Sign-up -->
-
-        <div id="login-wrapper" >
-            
+        <div id="login-wrapper">
             <section class="login-info-side">
                 <h1>Track Every Penny.</h1>
                 <p>Take control of your financial future with our clean, minimalist expense tracker dashboard.</p>
             </section>
             
             <section class="login-form-side">
-    
                 <div id="login-box">
                     <h2>Welcome Back</h2>
                     <p class="form-subtitle">Login to FinTrack Pro</p>
-                    
                     <form id="login-form">
                         <div class="form-group">
                             <label for="username">Username or Email</label>
                             <input type="text" id="username" placeholder="Enter your username" required>
                         </div>
-                        
                         <div class="form-group">
                             <label for="password">Password</label>
                             <div class="password-field-container">
@@ -40,10 +34,8 @@
                                 <button type="button" class="toggle-password-link">Show</button>
                             </div>
                         </div>
-                        
                         <button type="submit" class="login-btn">Sign In</button>
                         <p class="toggle-text">Don't have an account? <a href="#" id="to-register-link">Register here</a></p>
-                        
                         <div id="error-message" class="error-text"></div>
                     </form>
                 </div>
@@ -51,13 +43,11 @@
                 <div id="register-box" class="hidden">
                     <h2>Create Account</h2>
                     <p class="form-subtitle">Join FinTrack Pro</p>
-                    
                     <form id="register-form">
                         <div class="form-group">
                             <label for="register-username">Choose a Username</label>
                             <input type="text" id="register-username" placeholder="Enter your username" required>
                         </div>
-                        
                         <div class="form-group">
                             <label for="password-register">Password</label>
                             <div class="password-field-container">
@@ -65,21 +55,160 @@
                                 <button type="button" class="toggle-password-link">Show</button>
                             </div>
                         </div>
-                        
                         <button type="submit" class="login-btn btn-success">Register</button>
                         <p class="toggle-text">Already have an account? <a href="#" id="to-login-link">Login here</a></p>
-                        
                         <div id="register-error" class="error-text"></div>
                     </form>
                 </div>
-
             </section>
-
         </div>
-
     </main>
-    
 
+    <!-- Dashboard App Space -->
+    <div id="dashboard-wrapper" class="dashboard-wrapper hidden">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2>FinTrack<span>Pro</span></h2>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active">Dashboard</a>
+                <a href="#" class="menu-item">Analytics</a>
+                <a href="#" class="menu-item">Wallets</a>
+                <a href="#" class="menu-item">Settings</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="logout-btn">Log Out</button>
+            </div>
+        </aside>
+
+        <main class="dashboard-content">
+            <header class="content-header">
+                <div class="welcome-msg">
+                    <h1>Welcome Back, <span id="user-display-name">User</span>!</h1>
+                    <p>Here is your financial snapshot for today.</p>
+                </div>
+                <div class="header-actions">
+                    <button id="toggle-form-btn" class="action-btn-primary">+ New Transaction</button>
+                    <button id="theme-toggle" class="theme-toggle-btn">Dark Mode</button>
+                </div>
+            </header>
+
+            <!-- ==========================================
+                 VIEW 1: CORE DASHBOARD TARGET PORTAL
+                 ========================================== -->
+            <div id="view-dashboard" class="view-section">
+                <section class="stats-grid">
+                    <div class="stat-card balance">
+                        <h3>Total Balance</h3>
+                        <p class="stat-amount">$0.00</p>
+                    </div>
+                    <div class="stat-card income">
+                        <h3>Monthly Income</h3>
+                        <p class="stat-amount text-success">+$0.00</p>
+                    </div>
+                    <div class="stat-card expenses">
+                        <h3>Monthly Expenses</h3>
+                        <p class="stat-amount text-danger">-$0.00</p>
+                    </div>
+                </section>
+
+                <div class="dashboard-core-layout form-hidden">
+                    <section class="transaction-form-box hidden">
+                        <h3>Add New Transaction</h3>
+                        <form id="transaction-form">
+                            <div class="form-group">
+                                <label for="biz-type">Type</label>
+                                <select id="biz-type" required>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="biz-description">Description</label>
+                                <input type="text" id="biz-description" placeholder="e.g. Amazon, Salary, Coffee" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="biz-amount">Amount</label>
+                                    <input type="number" step="0.01" min="0.01" id="biz-amount" placeholder="0.00" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="biz-date">Date</label>
+                                    <input type="date" id="biz-date" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="biz-category">Category</label>
+                                <select id="biz-category" required>
+                                    <option value="" disabled selected>Select a category</option>
+                                    <option value="Food">Food & Dining</option>
+                                    <option value="Shopping">Shopping</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                    <option value="Bills">Bills & Utilities</option>
+                                    <option value="Salary">Salary / Income</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="add-btn">Add Transaction</button>
+                        </form>
+                    </section>
+
+                    <section class="transaction-history-box">
+                        <h3>All Transactions</h3>
+                        <div class="matrix-toolbar">
+                            <div class="search-input-wrapper">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="ledger-search" placeholder="Search transactions...">
+                            </div>
+                            <select id="ledger-filter-type" class="type-dropdown-filter">
+                                <option value="all">All Types</option>
+                                <option value="income">Income Only</option>
+                                <option value="expense">Expense Only</option>
+                            </select>
+                        </div>
+                        <div class="table-scroll-container">
+                            <table class="ledger-data-table">
+                                <thead>
+                                    <tr>
+                                        <th>DATE</th>
+                                        <th>DESCRIPTION</th>
+                                        <th>CATEGORY</th>
+                                        <th>AMOUNT</th>
+                                        <th style="text-align: right;">ACTIONS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ledger-table-rows"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 VIEW 2: DYNAMIC ANALYTICS VIEW PORTAL
+                 ========================================== -->
+            <div id="view-analytics" class="view-section hidden">
+                <div class="analytics-charts-grid">
+                    <div class="analytics-chart-card">
+                        <h3>Cash Flow Analysis (Income vs Expenses)</h3>
+                        <div class="chart-container-frame">
+                            <canvas id="cash-flow-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="analytics-chart-card">
+                        <h3>Spending Allocation by Category</h3>
+                        <div class="chart-container-frame doughnut-frame">
+                            <canvas id="category-distribution-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts Loading -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

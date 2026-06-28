@@ -1,59 +1,70 @@
 /* ==========================================================================
-   --- LIGHT MODE (DEFAULT) ---
+   1. DESIGN TOKENS & SYSTEM THEMES
    ========================================================================== */
+
 :root {
-  --bg-color: #f8fafc;       /* Light Slate body background */
-  --card-bg: #ffffff;        /* Crisp white for forms and summary cards */
-  --text-main: #0f172a;      /* Deep Slate for high-readability text */
-  --text-muted: #64748b;     /* Slate Gray for secondary captions */
+  /* Light Mode (Default) */
+  --bg-color: #f8fafc;        /* Light Slate body background */
+  --card-bg: #ffffff;         /* Crisp white for forms and summary cards */
+  --text-main: #0f172a;       /* Deep Slate for high-readability text */
+  --text-muted: #64748b;      /* Slate Gray for secondary captions */
   
-  /* Brand Theme Colors (Your signature Indigo identity) */
+  /* Brand Theme Colors */
   --primary: #4f46e5;        
   --primary-hover: #4338ca;  
   
   /* Transaction Utilities */
-  --success: #10b981;        /* Emerald green for income items */
+  --success: #10b981;         /* Emerald green for income items */
   --success-bg: #e6f4ea;     
-  --danger: #ef4444;         /* Coral red for expense items */
+  --danger: #ef4444;          /* Coral red for expense items */
   --danger-bg: #fce8e6;      
   
   /* Structure & Layout Tokens */
-  --border-color: #e2e8f0;   /* Clean light dividers */
-  --sidebar-bg: #0f172a;     /* Deep contrast slate for the navigation panel */
-  --sidebar-text: #94a3b8;   /* Balanced link color against dark background */
-  --bg-item: #f1f5f9;        /* Soft gray for background items like ledger cards */
+  --border-color: #e2e8f0;    /* Clean light dividers */
+  --sidebar-bg: #0f172a;      /* Deep contrast slate for the navigation panel */
+  --sidebar-text: #94a3b8;    /* Balanced link color against dark background */
+  --bg-item: #f1f5f9;         /* Soft gray for background items like ledger cards */
   
+  /* Global Layout Variables */
   --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
   --radius: 12px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  /* Dark Mode Overrides */
+  --bg-color: #060b13;        /* Deeper, ultra-dark midnight canvas */
+  --card-bg: #111a2e;         /* Elevated, rich navy-slate card color */
+  --text-main: #f8fafc;       /* Crisp, glowing white for primary elements */
+  --text-muted: #64748b;      /* Clean slate gray for secondary captions */
+  
+  /* Vibrant Accent Glows */
+  --primary: #6366f1;         /* Electric Indigo */
+  --primary-hover: #4f46e5;  
+  
+  /* Vivid Transaction Highlights */
+  --success: #34d399;         /* Mint Neon Green */
+  --success-bg: rgba(52, 211, 153, 0.06); 
+  --danger: #f87171;          /* Electric Coral Red */
+  --danger-bg: rgba(248, 113, 113, 0.06); 
+  
+  /* Structure, Borders & Depth */
+  --border-color: #1e293b;    /* Sharper, clean panel separator lines */
+  --sidebar-bg: #030712;      /* Absolute midnight black for the sidebar nav */
+  --sidebar-text: #64748b;   
+  --bg-item: #18233c;         /* Contrasting step-up background for dynamic list rows */
+  
+  /* Soft Neon Shadow Aura */
+  --shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.6), 0 4px 12px -4px rgba(99, 102, 241, 0.03);
+}
+
+[data-theme="dark"] input[type="date"] {
+  color-scheme: dark;
 }
 
 /* ==========================================================================
-   --- DARK MODE OVERRIDES ---
+   2. GLOBAL RESET & BASE STYLES
    ========================================================================== */
-[data-theme="dark"] {
-  --bg-color: #0f172a;       /* Deep Midnight Slate */
-  --card-bg: #1e293b;        /* Lighter slate for panel boxes */
-  --text-main: #f8fafc;      /* Clean off-white for low-strain reading */
-  --text-muted: #94a3b8;     /* Soft slate grey for subtexts */
-  
-  /* Glow treatments for the core brand colors in dark view */
-  --primary: #6366f1;        
-  --primary-hover: #4f46e5;  
-  
-  /* Balanced utility variants for dark mode illumination */
-  --success: #34d399;        
-  --success-bg: rgba(52, 211, 153, 0.1); 
-  --danger: #f87171;         
-  --danger-bg: rgba(248, 113, 113, 0.1); 
-  
-  /* Structure & Layout Adjustments */
-  --border-color: #334155;   /* Subtle divider tint to match slate */
-  --sidebar-bg: #020617;     /* Solid pitch slate to distinguish layout zones */
-  --sidebar-text: #64748b;   
-  --bg-item: #0f172a;        /* Alternating card tint to pull entries forward */
-  
-  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-}
 
 * {
   box-sizing: border-box;
@@ -61,7 +72,10 @@
   padding: 0;
 }
 
-body {
+html, body {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
@@ -69,12 +83,25 @@ body {
   line-height: 1.5;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+body, 
+.sidebar, 
+.stat-card, 
+.transaction-form-box, 
+.transaction-history-box, 
+input, 
+select {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 .hidden {
   display: none !important;
 }
 
+/* ==========================================================================
+   3. AUTHENTICATION SCREENS (LOGIN/REGISTER)
+   ========================================================================== */
 
-/*LAYOUT */
 .screen-container {
   display: flex;
   justify-content: center;
@@ -96,8 +123,7 @@ body {
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-
-/*LEFT SIDE*/ 
+/* Left Accent Info Block */
 .login-info-side {
   flex: 1;
   background-color: var(--primary);
@@ -122,7 +148,7 @@ body {
   font-weight: 400;
 }
 
-/*RIGHT SIDE*/ 
+/* Right Interactive Form Block */
 .login-form-side {
   flex: 1;
   padding: 3.5rem;
@@ -144,6 +170,7 @@ body {
   margin-bottom: 2rem;
 }
 
+/* Form Controls & Inputs */
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -174,76 +201,7 @@ body {
   box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
 
-.error-text {
-  color: var(--danger);
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  font-weight: 500;
-  min-height: 20px;
-}
-
-.login-btn {
-  width: 100%;
-  padding: 14px;
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  background-color: var(--primary);
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  margin-top: 0.5rem;
-}
-
-.login-btn:hover {
-  background-color: var(--primary-hover);
-}
-
-.login-btn:active {
-  transform: scale(0.99);
-}
-
-
-/* REGISTER */
-.login-form-side .form-subtitle {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  margin-bottom: 2rem;
-}
-
-.toggle-text {
-  text-align: center;
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  
-}
-
-.toggle-text a {
-  color: var(--primary);
-  font-weight: 600;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.toggle-text a:hover {
-  text-decoration: underline; 
-  color: var(--primary-hover);
-}
-
-.error-text {
-  color: var(--danger);
-  font-size: 0.875rem;
-  margin-top: 0.75rem;
-  font-weight: 500;
-  text-align: center;
-  min-height: 20px;
-}
-
-/* PASSWORD-SEEN */
-
+/* Password View Toggler */
 .password-field-container {
   position: relative;
   display: flex;
@@ -270,4 +228,579 @@ body {
 
 .toggle-password-link:hover {
   color: var(--primary);
+}
+
+/* Feedback & Action Systems */
+.error-text {
+  color: var(--danger);
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  min-height: 20px;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-top: 0.5rem;
+}
+
+.login-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.login-btn:active {
+  transform: scale(0.99);
+}
+
+.toggle-text {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.toggle-text a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.toggle-text a:hover {
+  text-decoration: underline; 
+  color: var(--primary-hover);
+}
+
+/* ==========================================================================
+   4. THE MASTER DASHBOARD WORKSPACE (GRID FRAMEWORK)
+   ========================================================================== */
+
+.dashboard-wrapper {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100vh;          
+  width: 100vw;
+  overflow: hidden;       
+  background-color: var(--bg-color);
+}
+
+/* ==========================================================================
+   5. SIDEBAR NAVIGATION CONTROLS
+   ========================================================================== */
+
+.sidebar {
+  background-color: var(--sidebar-bg);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 24px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-brand h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-brand span {
+  color: var(--primary);
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 48px;
+  flex-grow: 1;
+}
+
+.menu-item {
+  color: var(--sidebar-text);
+  text-decoration: none;
+  padding: 12px 16px;
+  border-left: 4px solid transparent;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: var(--transition);
+}
+
+.menu-item:hover, 
+.menu-item.active {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.menu-item.active {
+  border-left-color: var(--primary); 
+}
+
+.logout-btn {
+  width: 100%;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 12px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.logout-btn:hover {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   6. MAIN WORKSPACE CONTENT AREA
+   ========================================================================== */
+
+.dashboard-content {
+  padding: 20px 32px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+  background-color: var(--bg-color);
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.welcome-msg h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 2px;
+  color: var(--text-main);
+}
+
+.welcome-msg p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Modern Minimalist Pill Theme Toggle */
+.theme-toggle-btn {
+  background-color: var(--card-bg);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 8px 14px;
+  border-radius: 20px; 
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.1s ease;
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--bg-color);
+  border-color: var(--text-muted);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.97); 
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-btn-primary {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.action-btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+/* ==========================================================================
+   7. FINANCIAL STATS METRIC SUMMARY (GRID)
+   ========================================================================== */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px var(--shadow);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 20px 32px -12px rgba(0, 0, 0, 0.7), 0 8px 16px -8px rgba(99, 102, 241, 0.08);
+}
+
+/* Status Summary Accent Card-Tops */
+.stat-card.balance { border-top: 3px solid var(--primary); }
+.stat-card.income { border-top: 3px solid var(--success); }
+.stat-card.expenses { border-top: 3px solid var(--danger); }
+
+.stat-card h3 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.stat-amount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+
+/* ==========================================================================
+   8. OPERATIONAL CORE LAYOUT & INPUT FORMS
+   ========================================================================== */
+
+.dashboard-core-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 24px;
+  flex-grow: 1;
+  min-height: 0;
+  transition: grid-template-columns 0.3s ease;
+}
+
+.dashboard-core-layout.form-hidden {
+  grid-template-columns: 1fr;
+}
+
+.transaction-form-box, 
+.transaction-history-box {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.transaction-form-box h3, 
+.transaction-history-box h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  letter-spacing: -0.2px;
+}
+
+#transaction-form input,
+#transaction-form select {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--bg-color);    
+  color: var(--text-main);             
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px; 
+}
+
+#transaction-form input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+}
+
+#transaction-form input:focus,
+#transaction-form select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); 
+  background-color: var(--card-bg);
+}
+
+.add-btn {
+  width: 100%;
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  padding: 11px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: var(--transition);
+}
+
+.add-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+/* ==========================================================================
+   9. DATA PRESENTATION (MATRIX TOOLBAR, TABLE & LEDGERS)
+   ========================================================================== */
+
+.matrix-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex-grow: 1;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: var(--transition);
+}
+
+.search-input-wrapper input:focus {
+  border-color: var(--primary);
+}
+
+.type-dropdown-filter {
+  padding: 10px 16px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.type-dropdown-filter:focus {
+  border-color: var(--primary);
+}
+
+/* Table Window Frame Component */
+.table-scroll-container {
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.ledger-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.ledger-data-table th {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ledger-data-table td {
+  padding: 16px 12px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  vertical-align: middle;
+}
+
+.cell-date { 
+  color: var(--text-muted); 
+}
+
+.cell-desc { 
+  font-weight: 600; 
+  color: var(--text-main); 
+}
+
+.category-pill {
+  background-color: var(--bg-color);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.cell-amount { 
+  font-weight: 700; 
+}
+
+.cell-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.action-icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 0.95rem;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.action-icon-btn:hover { 
+  background-color: var(--bg-color); 
+}
+
+/* Secondary Component: Dynamic Node Injection Ledger List */
+.ledger-container {
+  max-height: 380px;
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 8px;
+}
+
+.transaction-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background-color: var(--bg-item);
+  border-radius: 8px;
+  border-left: 4px solid var(--text-muted);
+}
+
+.transaction-item.income { border-left-color: var(--success); }
+.transaction-item.expense { border-left-color: var(--danger); }
+
+.item-info p {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.item-info span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.item-amount {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 30px 0;
+  font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   10. SPA VIEW SECTIONS & ANALYTICS CHARTS GRID ENVIRONMENT
+   ========================================================================== */
+.view-section.hidden {
+  display: none !important;
+}
+
+.analytics-charts-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  width: 100%;
+  padding-top: 8px;
+}
+
+.analytics-chart-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.analytics-chart-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text-main);
+}
+
+.chart-container-frame {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+.chart-container-frame.doughnut-frame {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
