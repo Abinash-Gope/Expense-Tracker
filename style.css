@@ -252,6 +252,10 @@ select {
   box-sizing: border-box;
 }
 
+.error-text:empty {
+  display: none !important;
+}
+
 /* Main App Layout Grid */
 .dashboard-wrapper {
   display: grid;
