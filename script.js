@@ -1,6 +1,4 @@
-// ==========================================
-// 1. SELECTORS & CORE STATE CONFIGURATION
-// ==========================================
+// DOM Selectors
 const toRegisterLink = document.querySelector("#to-register-link");
 const toLoginLink = document.querySelector("#to-login-link");
 const loginBox = document.querySelector("#login-box");
@@ -29,27 +27,72 @@ const ledgerTableRows = document.querySelector("#ledger-table-rows");
 
 const searchInput = document.querySelector("#ledger-search");
 const typeFilter = document.querySelector("#ledger-filter-type");
+const ledgerWalletFilter = document.querySelector("#ledger-filter-wallet");
+const analyticsWalletFilter = document.querySelector("#analytics-filter-wallet");
 
 const balanceDisplay = document.querySelector(".stat-card.balance .stat-amount");
 const incomeDisplay = document.querySelector(".stat-card.income .stat-amount");
 const expenseDisplay = document.querySelector(".stat-card.expenses .stat-amount");
 const themeToggleBtn = document.querySelector("#theme-toggle");
 
-// SPA Route References
 const viewDashboard = document.querySelector("#view-dashboard");
 const viewAnalytics = document.querySelector("#view-analytics");
+const viewWallets = document.querySelector("#view-wallets");
+const viewSettings = document.querySelector("#view-settings");
 const menuItems = document.querySelectorAll(".menu-item");
 
-// Dynamic Memory Tokens
+const walletSelectDropdown = document.querySelector("#biz-wallet");
+const walletCreationForm = document.querySelector("#wallet-creation-form");
+const walletsGridContainer = document.querySelector("#wallets-grid-container");
+
+const settingsProfileForm = document.querySelector("#settings-profile-form");
+const settingsUsernameInput = document.querySelector("#settings-username");
+const settingsNewPasswordInput = document.querySelector("#settings-new-password");
+const btnResetData = document.querySelector("#btn-reset-data");
+const settingsCurrencySelect = document.querySelector("#settings-currency");
+
+// App State
 let currentUser = null;
 let userDbKey = "";
+let walletDbKey = "";
 let transactions = [];
+let wallets = [];
 let cashFlowChartInstance = null;
 let categoryChartInstance = null;
 
-// ==========================================
-// 2. AUTHENTICATION SCREENS TOGGLE FLOW
-// ==========================================
+// Currency System Settings
+let currentCurrencySymbol = "$"; 
+const currencyIsoMap = {
+    "$": "USD",
+    "€": "EUR",
+    "₹": "INR",
+    "£": "GBP",
+    "¥": "JPY",
+    "₪": "ILS"
+};
+let exchangeRates = { "USD": 1 }; // Default fallback
+
+// Fetch live exchange rates from API
+async function fetchExchangeRates() {
+    try {
+        const response = await fetch("https://open.er-api.com/v6/latest/USD");
+        if (!response.ok) throw new Error("Failed to reach exchange rate API.");
+        const data = await response.json();
+        if (data && data.rates) {
+            exchangeRates = data.rates;
+            console.log("Exchange rates updated successfully:", exchangeRates);
+        }
+    } catch (error) {
+        console.error("Using fallback rates due to error:", error);
+    }
+}
+
+function getConversionRate() {
+    const targetIso = currencyIsoMap[currentCurrencySymbol] || "USD";
+    return exchangeRates[targetIso] || 1;
+}
+
+// Toggle Login / Register Panels
 if (toRegisterLink && toLoginLink) {
     toRegisterLink.addEventListener('click', (event) => {
         event.preventDefault();
@@ -64,6 +107,7 @@ if (toRegisterLink && toLoginLink) {
     });
 }
 
+// Show / Hide Password fields
 const togglePasswordButtons = document.querySelectorAll(".toggle-password-link");
 togglePasswordButtons.forEach(button => {
     button.addEventListener('click', (event) => {
@@ -79,9 +123,7 @@ togglePasswordButtons.forEach(button => {
     });
 });
 
-// ==========================================
-// 3. REGISTRATION ENGINE (DATA STORAGE)
-// ==========================================
+// Handle User Registration
 function registration() {
     if (!registerForm) return;
     registerForm.addEventListener("submit", (event) => {
@@ -126,9 +168,7 @@ function registration() {
 }
 registration();
 
-// ==========================================
-// 4. SIGN IN ENGINE & SESSIONS
-// ==========================================
+// Handle User Sign In
 function login() {
     if (!loginForm) return;
     loginForm.addEventListener('submit', (event) => {
@@ -144,24 +184,42 @@ function login() {
             localStorage.setItem('currentUser', JSON.stringify(matchedUser));
             checkAuthState();
         } else {
-            errorMessage.textContent = "Account not found. Click register link above.";
+            errorMessage.textContent = "Account credentials mismatch. Try again.";
         }
     });
 }
 login();
 
-function checkAuthState() {
+// Check user session state and load keys
+async function checkAuthState() {
     const loggedInUser = localStorage.getItem('currentUser');
     if (loggedInUser) {
         currentUser = JSON.parse(loggedInUser);
         userDbKey = `transactions_${currentUser.userName}`;
+        walletDbKey = `wallets_${currentUser.userName}`;
+        
         transactions = JSON.parse(localStorage.getItem(userDbKey)) || [];
+        wallets = JSON.parse(localStorage.getItem(walletDbKey)) || [];
+
+        // Fallback default wallet setup
+        if (wallets.length === 0) {
+            wallets.push({ id: "w-default", name: "Main Wallet", initialBalance: 0 });
+            localStorage.setItem(walletDbKey, JSON.stringify(wallets));
+        }
 
         if (authScreenContainer) authScreenContainer.classList.add("hidden");
         if (loginPage) loginPage.classList.add("hidden");
         if (dashboardWrapper) dashboardWrapper.classList.remove("hidden");
         if (userDisplayName) userDisplayName.textContent = currentUser.userName;
+        if (settingsUsernameInput) settingsUsernameInput.value = currentUser.userName;
 
+        currentCurrencySymbol = localStorage.getItem(`currency_${currentUser.userName}`) || "$";
+        if (settingsCurrencySelect) settingsCurrencySelect.value = currentCurrencySymbol;
+
+        // Fetch latest data before running table render calls
+        await fetchExchangeRates();
+
+        populateWalletDropdowns();
         renderDashboard();
     } else {
         if (dashboardWrapper) dashboardWrapper.classList.add("hidden");
@@ -172,9 +230,7 @@ function checkAuthState() {
     }
 }
 
-// ==========================================
-// 5. DATA RENDERING & FILTERS
-// ==========================================
+// Render Core Dashboard Table and Statistics
 function renderDashboard() {
     if (!ledgerTableRows) return;
     let totalIncome = 0;
@@ -183,25 +239,34 @@ function renderDashboard() {
 
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
     const selectedType = typeFilter ? typeFilter.value : "all";
+    const selectedWallet = ledgerWalletFilter ? ledgerWalletFilter.value : "all";
+
+    const rate = getConversionRate();
 
     transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
     transactions.forEach((item, index) => {
-        if (item.type === "income") totalIncome += item.amount;
-        if (item.type === "expense") totalExpenses += item.amount;
+        const matchesWallet = selectedWallet === "all" || (item.walletId || "w-default") === selectedWallet;
+
+        if (matchesWallet) {
+            if (item.type === "income") totalIncome += item.amount;
+            if (item.type === "expense") totalExpenses += item.amount;
+        }
 
         const matchesSearch = item.description.toLowerCase().includes(searchTerm) || 
                               item.category.toLowerCase().includes(searchTerm);
         const matchesType = selectedType === "all" || item.type === selectedType;
 
-        if (matchesSearch && matchesType) {
+        if (matchesWallet && matchesSearch && matchesType) {
             const isIncome = item.type === "income";
+            const displayAmount = item.amount * rate;
+
             tableHTML += `
                 <tr>
                     <td class="cell-date">${item.date}</td>
                     <td class="cell-desc">${item.description}</td>
                     <td><span class="category-pill">${item.category}</span></td>
                     <td class="cell-amount ${isIncome ? 'text-success' : 'text-danger'}">
-                        ${isIncome ? '+' : '-'}$${item.amount.toFixed(2)}
+                        ${isIncome ? '+' : '-'}${currentCurrencySymbol}${displayAmount.toFixed(2)}
                     </td>
                     <td class="cell-actions">
                         <button class="action-icon-btn delete-btn" onclick="deleteTransaction(${index})">🗑️</button>
@@ -213,46 +278,82 @@ function renderDashboard() {
 
     ledgerTableRows.innerHTML = tableHTML || `<tr><td colspan="5" class="empty-state">No matching transactions found.</td></tr>`;
 
-    const totalBalance = totalIncome - totalExpenses;
-    if (balanceDisplay) balanceDisplay.textContent = `$${totalBalance.toFixed(2)}`;
-    if (incomeDisplay) incomeDisplay.textContent = `+$${totalIncome.toFixed(2)}`;
-    if (expenseDisplay) expenseDisplay.textContent = `-$${totalExpenses.toFixed(2)}`;
+    // Process summary values for calculation indicators
+    const convertedIncome = totalIncome * rate;
+    const convertedExpenses = totalExpenses * rate;
+    const totalBalance = convertedIncome - convertedExpenses;
+    const balanceSign = totalBalance < 0 ? "-" : "";
 
-    // Refresh active charts dynamically if analytics view is active
-    if (viewAnalytics && !viewAnalytics.classList.contains("hidden")) {
-        renderAnalyticsCharts();
+    if (balanceDisplay) balanceDisplay.textContent = `${balanceSign}${currentCurrencySymbol}${Math.abs(totalBalance).toFixed(2)}`;
+    if (incomeDisplay) incomeDisplay.textContent = `+${currentCurrencySymbol}${convertedIncome.toFixed(2)}`;
+    if (expenseDisplay) expenseDisplay.textContent = `-${currentCurrencySymbol}${convertedExpenses.toFixed(2)}`;
+
+    if (viewAnalytics && !viewAnalytics.classList.contains("hidden")) renderAnalyticsCharts();
+    if (viewWallets && !viewWallets.classList.contains("hidden")) renderWalletsPage();
+}
+
+// Populate Wallet Management Dropdown Filters
+function populateWalletDropdowns() {
+    if (!walletSelectDropdown) return;
+    
+    let formOptions = "";
+    wallets.forEach(w => {
+        formOptions += `<option value="${w.id}">${w.name}</option>`;
+    });
+    walletSelectDropdown.innerHTML = formOptions;
+
+    if (ledgerWalletFilter) {
+        const currentSel = ledgerWalletFilter.value || "all";
+        let ledgerOptions = `<option value="all">All Wallets</option>`;
+        wallets.forEach(w => {
+            ledgerOptions += `<option value="${w.id}">${w.name}</option>`;
+        });
+        ledgerWalletFilter.innerHTML = ledgerOptions;
+        ledgerWalletFilter.value = currentSel;
+    }
+
+    if (analyticsWalletFilter) {
+        const currentSel = analyticsWalletFilter.value || "all";
+        let analyticsOptions = `<option value="all">All Wallets</option>`;
+        wallets.forEach(w => {
+            analyticsOptions += `<option value="${w.id}">${w.name}</option>`;
+        });
+        analyticsWalletFilter.innerHTML = analyticsOptions;
+        analyticsWalletFilter.value = currentSel;
     }
 }
 
-// ==========================================
-// 6. TRANSACTION MUTATIONS (CRUD)
-// ==========================================
+// Add New Transaction Action
 if (transactionForm) {
     transactionForm.addEventListener("submit", (event) => {
         event.preventDefault();
-
         const type = document.querySelector("#biz-type").value;
         const description = document.querySelector("#biz-description").value.trim();
-        const amount = parseFloat(document.querySelector("#biz-amount").value);
+        const amountRaw = parseFloat(document.querySelector("#biz-amount").value);
         const date = document.querySelector("#biz-date").value;
         const category = document.querySelector("#biz-category").value;
+        const walletId = document.querySelector("#biz-wallet").value;
 
         if (!category || !date) {
             alert("Please provide a valid category and date.");
             return;
         }
-
-        if (isNaN(amount) || amount <= 0) {
+        if (isNaN(amountRaw) || amountRaw <= 0) {
             alert("Please enter a valid transactional amount greater than zero.");
             return;
         }
 
-        const newTransaction = { type, description, amount, date, category };
+        // Standardize currency value to USD baseline structure before persistent saving
+        const rate = getConversionRate();
+        const amountInUSD = amountRaw / rate;
+
+        const newTransaction = { type, description, amount: amountInUSD, date, category, walletId };
         transactions.push(newTransaction);
         localStorage.setItem(userDbKey, JSON.stringify(transactions));
         
         renderDashboard();
         transactionForm.reset();
+        populateWalletDropdowns(); 
 
         if (formBox && !formBox.classList.contains("hidden")) {
             formBox.classList.add("hidden");
@@ -270,9 +371,82 @@ window.deleteTransaction = function(index) {
     }
 };
 
-// ==========================================
-// 7. CHART.JS VISUAL ENGINE GRAPHICS
-// ==========================================
+// Render Wallets Page Layout UI
+function renderWalletsPage() {
+    if (!walletsGridContainer) return;
+
+    const rate = getConversionRate();
+    const walletBalances = {};
+    
+    wallets.forEach(w => {
+        walletBalances[w.id] = parseFloat(w.initialBalance) || 0;
+    });
+
+    transactions.forEach(t => {
+        const targetWalletId = t.walletId || "w-default";
+        if (walletBalances[targetWalletId] !== undefined) {
+            if (t.type === "income") walletBalances[targetWalletId] += t.amount;
+            if (t.type === "expense") walletBalances[targetWalletId] -= t.amount;
+        }
+    });
+
+    let walletsHTML = "";
+    wallets.forEach(w => {
+        const currentBalance = (walletBalances[w.id] || 0) * rate;
+        const displayInitial = (parseFloat(w.initialBalance) || 0) * rate;
+
+        walletsHTML += `
+            <div class="credit-card-ui">
+                <div>
+                    <p class="card-meta-title">${w.name}</p>
+                    <p class="card-live-balance">${currentBalance < 0 ? '-' : ''}${currentCurrencySymbol}${Math.abs(currentBalance).toFixed(2)}</p>
+                </div>
+                <div class="card-footer-layout">
+                    <span>Initial Deposit: ${currentCurrencySymbol}${displayInitial.toFixed(2)}</span>
+                    ${w.id !== 'w-default' ? `<button class="action-icon-btn" onclick="deleteWallet('${w.id}')">🗑️</button>` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    walletsGridContainer.innerHTML = walletsHTML || `<p class="empty-state">No wallets loaded.</p>`;
+}
+
+// Create New Wallet Link
+if (walletCreationForm) {
+    walletCreationForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = document.querySelector("#wallet-name").value.trim();
+        const initialBalanceRaw = parseFloat(document.querySelector("#wallet-initial").value) || 0;
+
+        // Convert balance back to USD before saving
+        const rate = getConversionRate();
+        const initialBalanceInUSD = initialBalanceRaw / rate;
+
+        wallets.push({ id: "w-" + Date.now(), name, initialBalance: initialBalanceInUSD });
+        localStorage.setItem(walletDbKey, JSON.stringify(wallets));
+        
+        walletCreationForm.reset();
+        populateWalletDropdowns();
+        renderWalletsPage();
+    });
+}
+
+window.deleteWallet = function(id) {
+    if (confirm("Are you sure you want to delete this wallet? This will permanently erase the account and ALL transactions linked to it!")) {
+        wallets = wallets.filter(w => w.id !== id);
+        localStorage.setItem(walletDbKey, JSON.stringify(wallets));
+        
+        transactions = transactions.filter(t => (t.walletId || "w-default") !== id);
+        localStorage.setItem(userDbKey, JSON.stringify(transactions));
+
+        populateWalletDropdowns();
+        renderWalletsPage();
+        renderDashboard();
+    }
+};
+
+// Generate Chart.js Canvas Analytics Graphics
 function renderAnalyticsCharts() {
     if (typeof Chart === 'undefined') return;
 
@@ -280,28 +454,36 @@ function renderAnalyticsCharts() {
     const textColor = isDark ? "#f8fafc" : "#0f172a";
     const gridColor = isDark ? "#1e293b" : "#e2e8f0";
 
-    let incomeSum = 0;
-    let expenseSum = 0;
-    const categoriesMap = {};
+    const selectedWallet = analyticsWalletFilter ? analyticsWalletFilter.value : "all";
+
+    let barIncome = 0;
+    let barExpense = 0;
+    const catMap = {};
 
     transactions.forEach(item => {
-        if (item.type === "income") incomeSum += item.amount;
+        const matchesWallet = selectedWallet === "all" || (item.walletId || "w-default") === selectedWallet;
+        if (!matchesWallet) return;
+
+        if (item.type === "income") barIncome += item.amount;
         if (item.type === "expense") {
-            expenseSum += item.amount;
-            categoriesMap[item.category] = (categoriesMap[item.category] || 0) + item.amount;
+            barExpense += item.amount;
+            catMap[item.category] = (catMap[item.category] || 0) + item.amount;
         }
     });
 
-    // Chart 1: Bar Chart
-    const ctxFlow = document.getElementById("cash-flow-chart");
-    if (ctxFlow) {
+    const rate = getConversionRate();
+    const finalChartIncome = barIncome * rate;
+    const finalChartExpense = barExpense * rate;
+
+    const ctx1 = document.getElementById("cash-flow-chart");
+    if (ctx1) {
         if (cashFlowChartInstance) cashFlowChartInstance.destroy();
-        cashFlowChartInstance = new Chart(ctxFlow, {
+        cashFlowChartInstance = new Chart(ctx1, {
             type: 'bar',
             data: {
                 labels: ['Income', 'Expenses'],
                 datasets: [{
-                    data: [incomeSum, expenseSum],
+                    data: [finalChartIncome, finalChartExpense],
                     backgroundColor: [isDark ? '#34d399' : '#10b981', isDark ? '#f87171' : '#ef4444'],
                     borderRadius: 6,
                     barThickness: 40
@@ -319,14 +501,14 @@ function renderAnalyticsCharts() {
         });
     }
 
-    // Chart 2: Doughnut Chart
-    const ctxCat = document.getElementById("category-distribution-chart");
-    if (ctxCat) {
+    const ctx2 = document.getElementById("category-distribution-chart");
+    if (ctx2) {
         if (categoryChartInstance) categoryChartInstance.destroy();
-        const labels = Object.keys(categoriesMap);
-        const data = Object.values(categoriesMap);
+        
+        const labels = Object.keys(catMap);
+        const data = Object.values(catMap).map(val => val * rate);
 
-        categoryChartInstance = new Chart(ctxCat, {
+        categoryChartInstance = new Chart(ctx2, {
             type: 'doughnut',
             data: {
                 labels: labels.length ? labels : ["No Expenses"],
@@ -346,9 +528,7 @@ function renderAnalyticsCharts() {
     }
 }
 
-// ==========================================
-// 8. SPA VIEW PORTAL INTERACTION ROUTER
-// ==========================================
+// Tab Routes View Router Layout
 menuItems.forEach(link => {
     link.addEventListener("click", (e) => {
         e.preventDefault();
@@ -356,34 +536,149 @@ menuItems.forEach(link => {
         link.classList.add("active");
 
         const selection = link.textContent.trim().toLowerCase();
-
-        // CONTROL ACCENT BUTTON PORTAL VISIBILITY
+        
         if (selection === "dashboard") {
             if (toggleFormBtn) toggleFormBtn.classList.remove("hidden");
         } else {
             if (toggleFormBtn) toggleFormBtn.classList.add("hidden");
         }
 
-        // CONTROL STRUCTURAL PANELS ROUTING NAVIGATION VIEWPORTS
+        viewDashboard.classList.add("hidden");
+        viewAnalytics.classList.add("hidden");
+        if (viewWallets) viewWallets.classList.add("hidden");
+        if (viewSettings) viewSettings.classList.add("hidden");
+
         if (selection === "analytics") {
-            viewDashboard.classList.add("hidden");
             viewAnalytics.classList.remove("hidden");
             renderAnalyticsCharts();
         } else if (selection === "dashboard") {
-            viewAnalytics.classList.add("hidden");
             viewDashboard.classList.remove("hidden");
             renderDashboard();
-        } else {
-            // Fail-safe protection layer for generic empty tabs (Wallets / Settings)
-            viewDashboard.classList.add("hidden");
-            viewAnalytics.classList.add("hidden");
+        } else if (selection === "wallets") {
+            if (viewWallets) viewWallets.classList.remove("hidden");
+            renderWalletsPage();
+        } else if (selection === "settings") {
+            if (viewSettings) viewSettings.classList.remove("hidden");
+            if (settingsNewPasswordInput) settingsNewPasswordInput.value = "";
         }
     });
 });
 
-// Layout Toggles & Global Handlers
+// Settings Management Control Actions Form Submit
+if (settingsProfileForm) {
+    settingsProfileForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        const newUsername = settingsUsernameInput.value.trim();
+        const newPassword = settingsNewPasswordInput.value;
+        const selectedCurrency = settingsCurrencySelect ? settingsCurrencySelect.value : "$";
+
+        if (!newUsername) {
+            alert("Username cannot be empty.");
+            return;
+        }
+
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        const oldUsername = currentUser.userName;
+        let usernameChanged = (newUsername !== oldUsername);
+
+        if (usernameChanged) {
+            const nameExists = users.some(u => u.userName.toLowerCase() === newUsername.toLowerCase());
+            if (nameExists) {
+                alert("This username is already taken! Please choose another one.");
+                return;
+            }
+        }
+
+        const userIndex = users.findIndex(u => u.userName === oldUsername);
+        if (userIndex === -1) {
+            alert("User error. Could not locate profile registry data.");
+            return;
+        }
+
+        if (newPassword) {
+            if (newPassword.length < 8) {
+                alert("Password must be at least 8 characters long.");
+                return;
+            }
+            const hasCapital = /[A-Z]/.test(newPassword);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>_]/.test(newPassword);
+
+            if (!hasCapital || !hasSpecial) {
+                alert("Password must include at least one capital letter and one special character.");
+                return;
+            }
+            users[userIndex].userPassword = newPassword;
+            currentUser.userPassword = newPassword;
+        }
+
+        // Migrate keys if the username changes
+        if (usernameChanged) {
+            users[userIndex].userName = newUsername;
+
+            const oldTransKey = userDbKey;
+            const oldWalletKey = walletDbKey;
+            const oldCurrencyKey = `currency_${oldUsername}`;
+
+            const newTransDbKey = `transactions_${newUsername}`;
+            const newWalletDbKey = `wallets_${newUsername}`;
+
+            localStorage.setItem(newTransDbKey, JSON.stringify(transactions));
+            localStorage.setItem(newWalletDbKey, JSON.stringify(wallets));
+
+            localStorage.removeItem(oldTransKey);
+            localStorage.removeItem(oldWalletKey);
+            localStorage.removeItem(oldCurrencyKey);
+
+            currentUser.userName = newUsername;
+            userDbKey = newTransDbKey;
+            walletDbKey = newWalletDbKey;
+
+            if (userDisplayName) userDisplayName.textContent = newUsername;
+        }
+
+        // Update currency options
+        localStorage.setItem(`currency_${currentUser.userName}`, selectedCurrency);
+        currentCurrencySymbol = selectedCurrency;
+
+        localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+        alert("Account profile configurations modified successfully!");
+        if (settingsNewPasswordInput) settingsNewPasswordInput.value = "";
+
+        populateWalletDropdowns();
+        renderDashboard();
+    });
+}
+
+// Master Reset Account Trigger Action Command 
+if (btnResetData) {
+    btnResetData.addEventListener("click", () => {
+        if (confirm("CRITICAL WARNING: Are you certain you want to purge all active financials records and custom wallets? This operational path cannot be undone!")) {
+            localStorage.removeItem(userDbKey);
+            localStorage.removeItem(walletDbKey);
+
+            transactions = [];
+            wallets = [{ id: "w-default", name: "Main Wallet", initialBalance: 0 }];
+            localStorage.setItem(walletDbKey, JSON.stringify(wallets));
+
+            populateWalletDropdowns();
+            renderDashboard();
+
+            alert("All account databases, operations cards, and flow metrics charts cleared back to base zero!");
+
+            const dashTab = Array.from(menuItems).find(item => item.textContent.trim().toLowerCase().includes('dashboard'));
+            if (dashTab) dashTab.click();
+        }
+    });
+}
+
+// Dynamic Filter Search Input Listeners
 if (searchInput) searchInput.addEventListener("input", renderDashboard);
 if (typeFilter) typeFilter.addEventListener("change", renderDashboard);
+if (ledgerWalletFilter) ledgerWalletFilter.addEventListener("change", renderDashboard);
+if (analyticsWalletFilter) analyticsWalletFilter.addEventListener("change", renderAnalyticsCharts);
 
 if (toggleFormBtn) {
     toggleFormBtn.addEventListener("click", () => {
@@ -398,13 +693,16 @@ if (logoutBtn) {
         localStorage.removeItem("currentUser");
         currentUser = null;
         userDbKey = "";
+        walletDbKey = "";
         transactions = [];
+        wallets = [];
         checkAuthState();
     });
 }
 
+// Light and Dark Mode Themes Selection Switches
 if (themeToggleBtn) {
-    const activeTheme = localStorage.getItem("appTheme") || "dark";
+    const activeTheme = localStorage.getItem("appTheme") || "light";
     if (activeTheme === "dark") {
         document.documentElement.setAttribute("data-theme", "dark");
         themeToggleBtn.textContent = "☀️ Light Mode";
@@ -424,5 +722,5 @@ if (themeToggleBtn) {
     });
 }
 
-// Initial Run Launch Command
+// Initialize Application Check Initialization
 checkAuthState();
